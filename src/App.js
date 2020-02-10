@@ -112,8 +112,6 @@ const App = () => {
       <Route path="/users/:userId/:username/:profileImage" render={() => <UserProfilePage users={users} isAuthed={true} />} />
       <Route path="/profile"><MyProfilePage /></Route>
       <Route path="/image/upload"><UploadPage /></Route>
-
-      <HomePage users={users} />
     </>
   );
 }

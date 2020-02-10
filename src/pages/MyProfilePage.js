@@ -1,37 +1,78 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios'
+import React, { useEffect, useState } from "react";
+import { useHistory } from "react-router-dom";
+import { Container, Col, Row, Button } from "reactstrap";
+import Image from "react-graceful-image";
 import LoadingIndicator from '../components/LoadingIndicator';
+import axios from "axios";
 
 const MyProfilePage = () => {
-
-    const [Myprofile, setMyProfile] = useState([]);
-    const [isLoading, setIsLoading] = useState(true)
+    const [currentUser, setCurrentUser] = useState(null);
+    const [images, setImages] = useState([]);
+    const history = useHistory();
 
     useEffect(() => {
+        const loggedInUser = localStorage.getItem("userInfo");
+        if (loggedInUser) {
+            setCurrentUser(JSON.parse(loggedInUser));
+        } else {
+            history.push("/");
+        }
+
         axios({
-            method: "get",
-            url: `https://insta.nextacademy.com/api/v1/images/me`,
-            headers: { Authorization: `Bearer ${localStorage.getItem("authToken")}` }
-        })
-            .then(result => {
-                console.log(result);
-                setMyProfile(result.data);
-                setIsLoading(false)
-            })
-            .catch(error => {
-                console.error(error.response);
-            });
+            method: "GET",
+            url: "https://insta.nextacademy.com/api/v1/images/me",
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem("authToken")}`
+            }
+        }).then(response => {
+            setImages(response.data);
+        });
     }, []);
 
-    if (isLoading)
-        return <LoadingIndicator />
+    if (!currentUser) {
+        return <LoadingIndicator />;
+    }
+
+    console.log(currentUser);
 
     return (
-        <>
-            {Myprofile.map((user, index) => {
-                return <img key={index} src={user} />;
-            })}
-        </>
+        <div>
+            <Container className="mt-5" fluid>
+                <Row>
+                    <Col md={6}>
+                        <Image src={currentUser.profile_picture} alt="meeee" />
+                    </Col>
+                    <Col md={6}>
+                        <h1>{currentUser.username}</h1>
+                        <Button className="mt-4" color="secondary">
+                            Upload New Image
+                        </Button>
+                    </Col>
+                </Row>
+            </Container>
+
+            <Container>
+                <hr />
+                {images.length > 0 ? (
+                    <div
+                        className="w-100 mt-5"
+                        style={{ columnCount: 3, columnGap: "1em" }}
+                    >
+                        {images.map((image, index) => {
+                            return (
+                                <Image
+                                    key={index}
+                                    src={image}
+                                    style={{ width: "100%", margin: "0 0 1em", display: "block" }}
+                                />
+                            );
+                        })}
+                    </div>
+                ) : (
+                        <h1 className="mt-5">No Images to display! Make a post!</h1>
+                    )}
+            </Container>
+        </div>
     );
 };
 
